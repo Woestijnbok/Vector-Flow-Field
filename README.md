@@ -32,22 +32,22 @@ The previous step can be ignored when each terrain has the same cost (flat field
 We start by adding the destination cell to the open list. While we have cells left in the open list we do the following. Get and remove a cell from the open list, will call that cell the current cell. Get the cells around the current cell, will call them the neighbour cells. For each neighbour node we execute the following logic.
 	
 ```cs
-	while(openList.Count > 0)
+while(openList.Count > 0)
+{
+	Cell current = openList.Dequeue();
+
+	foreach (Cell neighbour in GetNeighbours(current.Index))	
 	{
-		Cell current = openList.Dequeue();
-  
-		foreach (Cell neighbour in GetNeighbours(current.Index))	
+		if (neighbour.Cost == byte.MaxValue) continue;		
+		else if (neighbour.Cost + current.BestCost < neighbour.BestCost)	
 		{
-			if (neighbour.Cost == byte.MaxValue) continue;		
-			else if (neighbour.Cost + current.BestCost < neighbour.BestCost)	
-			{
-				neighbour.BestCost = (ushort)(neighbour.Cost + current.BestCost);
-				openList.Enqueue(neighbour);
-			}
+			neighbour.BestCost = (ushort)(neighbour.Cost + current.BestCost);
+			openList.Enqueue(neighbour);
 		}
 	}
+}
 
-	// Note that there is no distance caclulations here since we are using chebychev distance
+// Note that there is no distance caclulations here since we are using chebychev distance
  ```
 
 <div align="center">
@@ -59,31 +59,31 @@ We start by adding the destination cell to the open list. While we have cells le
 To generate the direction map we will use a technique called kernel convolution. This technique simplified is adapting your own information based on your surrounding. In our case changing our current direction (of the cell) based on its neighbours (who are one cell away). I choose for very simple logic, the direction stored in cell x is the direction from cell x to its neighbour cell y with the lowest cost.
 
 ```cs
-	foreach(Cell current in m_Cells)
-	{
-		ushort bestCost = ushort.MaxValue;
-		Cell target = null;
+foreach(Cell current in m_Cells)
+{
+	ushort bestCost = ushort.MaxValue;
+	Cell target = null;
 
-    		foreach (Cell neighbour in GetNeighbours(current.Index))
-	   	 {
-		        if (neighbour.BestCost < bestCost) 
-			{
-		            bestCost = neighbour.BestCost;
-					target = neighbour;
-		        }
-		}
-	
-		if(target == null || target.WorldPosition == null)
+	foreach (Cell neighbour in GetNeighbours(current.Index))
+	{
+		if (neighbour.BestCost < bestCost) 
 		{
-			current.Direction = (m_DestinationCell.WorldPosition - current.WorldPosition).normalized;
-	    	}
-		else 
-		{
-	        current.Direction = (target.WorldPosition - current.WorldPosition).normalized;
+			bestCost = neighbour.BestCost;
+			target = neighbour;
 		}
 	}
+	
+	if(target == null || target.WorldPosition == null)
+	{
+		current.Direction = (m_DestinationCell.WorldPosition - current.WorldPosition).normalized;
+	}
+	else 
+	{
+		current.Direction = (target.WorldPosition - current.WorldPosition).normalized;
+	}
+}
 
-	// Note that there is no distance caclulations here since we are using chebychev distance
+// Note that there is no distance caclulations here since we are using chebychev distance
  ```
 
  <div align="center">
